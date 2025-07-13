@@ -45,7 +45,44 @@ To implement a similar user management system in your own application, you would
 
 2.  **Implement Authentication:** Use a library like `passlib` for password hashing and JWT for session management.
 
+    ```python
+    # backend/open_webui/utils/auth.py
+    from passlib.context import CryptContext
+    from jose import JWTError, jwt
+
+    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+    def verify_password(plain_password, hashed_password):
+        return pwd_context.verify(plain_password, hashed_password)
+
+    def get_password_hash(password):
+        return pwd_context.hash(password)
+
+    def create_access_token(data: dict):
+        to_encode = data.copy()
+        return jwt.encode(to_encode, "SECRET_KEY", algorithm="HS256")
+    ```
+
 3.  **Build API Endpoints:** Create API endpoints for creating, reading, updating, and deleting users.
+
+    ```python
+    # backend/open_webui/routers/users.py
+    from fastapi import APIRouter, Depends
+    from ..models.users import User
+    from ..utils.auth import get_current_user
+
+    router = APIRouter()
+
+    @router.get("/", response_model=list[User])
+    async def get_users(current_user: User = Depends(get_current_user)):
+        # Your logic to get all users
+        pass
+
+    @router.put("/{user_id}", response_model=User)
+    async def update_user(user_id: str, user: User, current_user: User = Depends(get_current_user)):
+        # Your logic to update a user
+        pass
+    ```
 
 4.  **Develop a UI:** Create a user interface for administrators to manage users and roles. The `EditUserModal.svelte` component is a good example of how to build a UI for changing user roles.
 
@@ -145,6 +182,18 @@ To implement a similar chat interface, you would need to:
     ```
 
 3.  **Handle File Uploads:** Implement file upload functionality on both the client and server.
+
+    ```python
+    # backend/open_webui/routers/files.py
+    from fastapi import APIRouter, UploadFile, File
+
+    router = APIRouter()
+
+    @router.post("/upload")
+    async def upload_file(file: UploadFile = File(...)):
+        # Your logic to save the file
+        return {"filename": file.filename}
+    ```
 
 ### 3. Document and Knowledge Base Management
 
